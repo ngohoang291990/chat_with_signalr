@@ -1,0 +1,65 @@
+﻿
+@{
+    ViewBag.Title = "Chat";
+}
+
+<h2>Chat</h2>
+<div class="container" id="divLogin">
+    <input type="text" id="txtName" placeholder="Nhập tên" />
+    <button class="btn btn-success" id="btnLogin">Login</button>
+    <input type="hidden" id="hName" />
+</div>
+<div class="container" id="divChat">
+    <h2 id="welcome"></h2>
+    <input type="text" id="txtMessage" />
+    <button class="btn btn-success" id="btnSend">Send</button>
+</div>
+<div class="container">
+    <ul id="contentMsg">
+    </ul>
+</div>
+@section scripts
+{
+    <script>
+        function show() {
+            $('#divLogin').hide();
+            $('#divChat').show();
+        }
+        function hide() {
+            $('#divChat').hide();
+            $('#divLogin').show();
+        }
+        $(function () {
+            $('#divChat').hide();
+            var chat = $.connection.chat;
+            console.log(chat);
+            loadClient(chat);
+            $.connection.hub.start().done(function () {
+                $("#btnLogin").click(function () {
+                    var name = $("#txtName").val();
+                    chat.server.connect(name);
+                    $('#welcome').html("Xin chao : " + name);
+                    show();
+                });
+
+                $('#btnSend').click(function () {
+                    var msg = $('#txtMessage').val();
+                    var name = $('#hName').val();
+                    chat.server.message(name, msg);
+                    $('#txtMessage').val('').focus();
+                });
+            });
+
+        });
+
+        function loadClient(chat) {
+
+            chat.client.message = function (name, msg) {
+                $('#contentMsg').append("<li><strong>" + name + "</strong>: " + msg + "</li>");
+            }
+            chat.client.connect = function (name) {
+                $('#hName').val(name);
+            }
+        }
+    </script>
+}
